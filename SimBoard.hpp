@@ -23,7 +23,6 @@ class SimBoard : public hf::Board {
 
         double _quat[4] = {0};
         double _gyro[3] = {0};
-        double _motors[MAXMOTORS] = {0};
 
 		uint8_t _qcount = 0;
 
@@ -53,11 +52,6 @@ class SimBoard : public hf::Board {
             return true;
         }
 
-        void writeMotor(uint8_t index, float value)
-        {
-            _motors[index] = value;
-        }
-
         float getTime(void)
         {
             return _currentTime;
@@ -74,7 +68,7 @@ class SimBoard : public hf::Board {
 		{ 
 		}
 
-        void getMotors(const double time, const double quat[4], const double gyro[3], double * motors, uint8_t motorCount)
+        void set(const double time, const double quat[4], const double gyro[3])
         {
             _currentTime = time;
 
@@ -86,11 +80,6 @@ class SimBoard : public hf::Board {
             // Copy in gyro
             for (uint8_t j=0; j<3; ++j) {
                 _gyro[j] = gyro[j];
-            }
-
-            // Copy out motors
-            for (uint8_t j=0; j<motorCount; ++j) {
-                motors[j] = _motors[j];
             }
         }
 

@@ -23,6 +23,7 @@
 
 #include "SimReceiver.hpp"
 #include "SimBoard.hpp"
+#include "SimMotor.hpp"
 #include "SimSensors.hpp"
 
 class FHackflightFlightManager : public FFlightManager {
@@ -42,7 +43,6 @@ class FHackflightFlightManager : public FFlightManager {
         // Level
         hf::LevelPid levelPid = hf::LevelPid(0.8);
 
-        /*
         // Alt-hold
         hf::AltitudeHoldPid althold = hf::AltitudeHoldPid(
                 10.00f, // altHoldPosP
@@ -52,7 +52,6 @@ class FHackflightFlightManager : public FFlightManager {
 
         // Pos-hold (via simulated optical flow)
         hf::FlowHoldPid flowhold = hf::FlowHoldPid(0.05, 0.05);
-        */
 
         // Main firmware
         hf::Hackflight _hackflight;
@@ -69,22 +68,33 @@ class FHackflightFlightManager : public FFlightManager {
         // "Sensors" (get values from dynamics)
         SimSensors * _sensors = NULL;
 
+        // "Motors" just store their current value
+        SimMotor ** _motors = NULL;
+        uint8_t     _nmotors = 0;
+
     public:
 
         // Constructor
         FHackflightFlightManager(MultirotorDynamics * dynamics) 
             : FFlightManager(dynamics) 
         {
+            // Create simulated motors
+            _nmotors = dynamics->motorCount();
+            _motors = new SimMotor * [_nmotors];
+            for (uint8_t i=0; i<_nmotors; ++i) {
+                _motors[i] = new SimMotor();
+            }
+
             // Start Hackflight firmware, indicating already armed
-            _hackflight.init(&_board, &_receiver, &_mixer, true);
+            _hackflight.init(&_board, &_receiver, &_mixer, (hf::Motor **)_motors, true);
 
             // Add simulated sensor suite
             _sensors = new SimSensors(_dynamics);
             _hackflight.addSensor(_sensors);
 
 			// Add altitude-hold and position-hold PID controllers in switch position 1
-			//_hackflight.addPidController(&althold, 1);
-			//_hackflight.addPidController(&flowhold, 1);
+			_hackflight.addPidController(&althold, 1);
+			_hackflight.addPidController(&flowhold, 1);
 
 			// Add rate and level PID controllers for all aux switch positions
 			_hackflight.addPidController(&levelPid);
@@ -93,6 +103,11 @@ class FHackflightFlightManager : public FFlightManager {
 
         virtual ~FHackflightFlightManager(void)
         {
+            for (uint8_t i=0; i<_nmotors; ++i) {
+                delete _motors[i];
+            }
+
+            delete _motors;
         }
 
         virtual void getMotors(const double time, const MultirotorDynamics::state_t & state, double * motorvals) override
@@ -114,8 +129,13 @@ class FHackflightFlightManager : public FFlightManager {
                     _hackflight.update();
 
                     // Input deltaT, quat, gyro; output motor values
-                    _board.getMotors(time, state.quaternion, state.angularVel, motorvals, 4);
+                    _board.set(time, state.quaternion, state.angularVel);
+
+                    // Get motor values
+                    for (uint8_t i=0; i < _nmotors; ++i) {
+                        motorvals[i] = _motors[i]->getValue();
+                    }
             }
-         }
+        }
 
 }; // HackflightFlightManager
