@@ -23,6 +23,7 @@
 
 #include "SimReceiver.hpp"
 #include "SimBoard.hpp"
+#include "SimImu.hpp"
 #include "SimMotor.hpp"
 #include "SimSensors.hpp"
 
@@ -59,6 +60,9 @@ class FHackflightFlightManager : public FFlightManager {
         // Flight-controller board
         SimBoard _board;
 
+        // "IMU"
+        SimIMU _imu;
+
         // "Receiver" (joystick/gamepad)
         SimReceiver _receiver;
 
@@ -86,7 +90,7 @@ class FHackflightFlightManager : public FFlightManager {
             }
 
             // Start Hackflight firmware, indicating already armed
-            _hackflight.init(&_board, &_receiver, &_mixer, (hf::Motor **)_motors, true);
+            _hackflight.init(&_board, &_imu, &_receiver, &_mixer, (hf::Motor **)_motors, true);
 
             // Add simulated sensor suite
             _sensors = new SimSensors(_dynamics);
@@ -128,8 +132,9 @@ class FHackflightFlightManager : public FFlightManager {
 
                     _hackflight.update();
 
-                    // Input deltaT, quat, gyro; output motor values
-                    _board.set(time, state.quaternion, state.angularVel);
+                    _board.set(time);
+
+                    _imu.set(state.quaternion, state.angularVel);
 
                     // Get motor values
                     for (uint8_t i=0; i < _nmotors; ++i) {
