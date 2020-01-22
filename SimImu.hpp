@@ -32,8 +32,10 @@ class SimIMU : public hf::IMU {
             return true;
         }
 
-        virtual bool getQuaternion(float & qw, float & qx, float & qy, float & qz) override
+        virtual bool getQuaternion(float & qw, float & qx, float & qy, float & qz, float time) override
         {
+	    (void)time;	
+		
             _qcount = ((_qcount+1) % Q_DIVISOR);
 
             if (_qcount) return false;
