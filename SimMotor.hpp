@@ -30,10 +30,6 @@ class SimMotor : public hf::Motor {
 
     protected:
 
-        virtual void init(void) override
-        {
-        }
-
         virtual void write(float value) override
         {
             _value = value;
