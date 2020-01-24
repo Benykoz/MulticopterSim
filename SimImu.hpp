@@ -19,7 +19,7 @@ class SimIMU : public hf::IMU {
         double _quat[4] = {0};
         double _gyro[3] = {0};
 
-		uint8_t _qcount = 0;
+        uint8_t _qcount = 0;
 
     public:
 
@@ -34,8 +34,8 @@ class SimIMU : public hf::IMU {
 
         virtual bool getQuaternion(float & qw, float & qx, float & qy, float & qz, float time) override
         {
-	    (void)time;	
-		
+            (void)time;	
+
             _qcount = ((_qcount+1) % Q_DIVISOR);
 
             if (_qcount) return false;
@@ -46,10 +46,6 @@ class SimIMU : public hf::IMU {
             qz =   _quat[3];
 
             return true;
-        }
-
-        virtual void begin(void) override
-        {
         }
 
         void set(const double quat[4], const double gyro[3])
