@@ -10,7 +10,7 @@
 
 #include "../MainModule/FlightManager.hpp"
 
-#include <hackflight.hpp>
+#include <hackflightfull.hpp>
 
 // PID controllers
 #include <pidcontrollers/level.hpp>
@@ -55,7 +55,7 @@ class FHackflightFlightManager : public FFlightManager {
         hf::FlowHoldPid flowhold = hf::FlowHoldPid(0.05, 0.05);
 
         // Main firmware
-        hf::Hackflight _hackflight;
+        hf::HackflightFull _hackflight;
 
         // Flight-controller board
         SimBoard _board;
